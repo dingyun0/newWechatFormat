@@ -76,16 +76,23 @@ var app = new Vue({
       var output = marked(source, { renderer: this.wxRenderer.getRenderer() });
 
       // 处理背景图
+
       this.$nextTick(() => {
         const bgElement = document.querySelector(".wx-background");
+
         const preview = document.querySelector(".preview");
 
         if (bgElement) {
           const bgUrl = bgElement.getAttribute("data-bg-url");
+
           preview.style.backgroundImage = `url(${bgUrl})`;
+
           preview.style.backgroundSize = "cover";
+
           preview.style.backgroundPosition = "center";
+
           // 移除背景图标记元素
+
           bgElement.remove();
         } else {
           preview.style.backgroundImage = "none";
@@ -95,82 +102,112 @@ var app = new Vue({
       if (this.wxRenderer.hasFootnotes()) {
         output += this.wxRenderer.buildFootnotes();
       }
+
       return output;
     },
+
     editorThemeChanged: function (editorTheme) {
       this.editor.setOption("theme", editorTheme);
     },
+
     fontChanged: function (fonts) {
       this.wxRenderer.setOptions({
         fonts: fonts,
       });
+
       this.refresh();
     },
+
     sizeChanged: function (size) {
       this.wxRenderer.setOptions({
         size: size,
       });
+
       this.refresh();
     },
+
     themeChanged: function (themeName) {
       var themeName = themeName;
+
       var themeObject = this.styleThemes[themeName];
+
       this.wxRenderer.setOptions({
         theme: themeObject,
       });
+
       this.refresh();
     },
+
     refresh: function () {
       this.output = this.renderWeChat(this.editor.getValue());
+
       this.$nextTick(() => {
         this.updatePreviewBackground();
       });
     },
+
     copy: function () {
       var clipboardDiv = document.getElementById("output");
+
       clipboardDiv.focus();
+
       window.getSelection().removeAllRanges();
+
       var range = document.createRange();
+
       range.setStartBefore(clipboardDiv.firstChild);
+
       range.setEndAfter(clipboardDiv.lastChild);
+
       window.getSelection().addRange(range);
 
       try {
         if (document.execCommand("copy")) {
           this.$message({
             message: "已复制到剪贴板",
+
             type: "success",
           });
         } else {
           this.$message({
             message: "未能复制到剪贴板，请全选后右键复制",
+
             type: "warning",
           });
         }
       } catch (err) {
         this.$message({
           message: "未能复制到剪贴板，请全选后右键复制",
+
           type: "warning",
         });
       }
     },
+
     backgroundChanged: function () {
       this.updatePreviewBackground();
     },
+
     clearBackground: function () {
       this.backgroundImage = "";
+
       this.updatePreviewBackground();
     },
+
     updatePreviewBackground: function () {
       const preview = document.querySelector(".preview");
+
       if (this.backgroundImage) {
         preview.style.setProperty("--bg-image", `url(${this.backgroundImage})`);
+
         preview.style.setProperty(
           "background-image",
+
           `url(${this.backgroundImage})`
         );
       } else {
         preview.style.setProperty("--bg-image", "none");
+
         preview.style.setProperty("background-image", "none");
       }
     },

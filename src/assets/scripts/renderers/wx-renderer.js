@@ -188,13 +188,17 @@ var WxRenderer = function (opts) {
     };
     renderer.image = function (href, title, text) {
       const bg = parseBackground(text + href);
+
       if (bg && bg.isBackground) {
         // 返回特殊的背景图标记
+
         return `<div class="wx-background" data-bg-url="${bg.url}"></div>`;
       }
 
       // 原有的图片渲染逻辑
+
       var style = S("image");
+
       if (ENV_STETCH_IMAGE) {
         return `<img style="${style}" src="${href}" title="${title || ""}">`;
       } else {
@@ -203,6 +207,7 @@ var WxRenderer = function (opts) {
         }">`;
       }
     };
+
     renderer.link = function (href, title, text) {
       if (href.indexOf("https://mp.weixin.qq.com") === 0) {
         return (
@@ -221,6 +226,7 @@ var WxRenderer = function (opts) {
       } else {
         if (ENV_USE_REFERENCES) {
           var ref = addFootnote(title || text, href);
+
           return (
             "<span " +
             S("link") +
@@ -245,9 +251,11 @@ var WxRenderer = function (opts) {
         }
       }
     };
+
     renderer.strong = renderer.em = function (text) {
       return "<strong " + S("strong") + ">" + text + "</strong>";
     };
+
     renderer.table = function (header, body) {
       return (
         "<table " +
@@ -261,49 +269,74 @@ var WxRenderer = function (opts) {
         "</tbody></table>"
       );
     };
+
     renderer.tablecell = function (text, flags) {
       return "<td " + S("td") + ">" + text + "</td>";
     };
+
     renderer.hr = function () {
       return '<hr style="border-style: solid;border-width: 1px 0 0;border-color: rgba(0,0,0,0.1);-webkit-transform-origin: 0 0;-webkit-transform: scale(1, 0.5);transform-origin: 0 0;transform: scale(1, 0.5);">';
     };
 
-    // 添加处理 HTML 的方法
     renderer.html = function (html) {
+      // 处理带背景图的 div
+
       if (html.includes("background-image")) {
+        // 提取背景图 URL 和高度
+
         const match = html.match(/background-image:\s*url\(['"](.+?)['"]\)/);
+
         const heightMatch = html.match(/height:\s*(\d+)px/);
 
         if (match && match[1]) {
           const bgUrl = match[1];
-          const height = heightMatch ? heightMatch[1] : "300";
+
+          const height = heightMatch ? heightMatch[1] : "300"; // 默认高度300px
+
+          // 提取 div 中的内容
 
           const content = html
+
             .replace(/<div[^>]*>|<\/div>|<!--.*?-->/g, "")
+
             .trim();
+
+          // 对内容进行 markdown 解析
+
           const parsedContent = marked(content, { renderer: renderer });
 
-          // 使用新的嵌套结构确保完整覆盖
-          return `<section style="max-width: 100%;box-sizing: border-box;margin: 0px auto;">
-            <section style="max-width: 100%;width: 677px;margin-left: auto;margin-right: auto;box-sizing: border-box;">
-              <section style="max-width: 100%;width: 677px;margin-left: auto;margin-right: auto;box-sizing: border-box;transform: translate3d(0px, 0px, 0px);-webkit-transform: translate3d(0px, 0px, 0px);-moz-transform: translate3d(0px, 0px, 0px);-o-transform: translate3d(0px, 0px, 0px);">
-                <section style="position: relative;max-width: 100%;box-sizing: border-box;">
-                  <section style="max-width: 100%;width: 677px;margin-left: auto;margin-right: auto;box-sizing: border-box;">
-                    <img style="max-width: 100%;width: 677px;height: ${height}px;object-fit: cover;margin: 0px;box-sizing: border-box;" src="${bgUrl}" />
-                  </section>
-                  <section style="position: absolute;top: 0px;left: 0px;right: 0px;bottom: 0px;width: 100%;height: 100%;box-sizing: border-box;background-color: rgba(255, 255, 255, 0.9);margin: 0px auto;">
-                    <section style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;padding: 20px;box-sizing: border-box;">
-                      <section style="width: 100%;box-sizing: border-box;">
-                        ${parsedContent}
-                      </section>
-                    </section>
-                  </section>
+          // 使用微信支持的排版格式
+
+          return `<section style="text-align: center;margin-bottom: 10px;">
+
+            <section style="display: inline-block;width: 100%;">
+
+              <section style="text-align: center;">
+
+                <section style="margin: 0px auto;width: 667px;">
+
+                  <img style="width: 100%;height: ${height}px;object-fit: cover;" src="${bgUrl}" />
+
                 </section>
+
+                <section style="margin-top: -${height}px;height: ${height}px;width: 667px;;padding:20px;">
+
+                  <section style="height: 100%;background-color: rgba(255, 255, 255, 0.85);padding: 20px;box-sizing: border-box;">
+
+                    ${parsedContent}
+
+                  </section>
+
+                </section>
+
               </section>
+
             </section>
+
           </section>`;
         }
       }
+
       return html;
     };
 
